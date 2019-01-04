@@ -5,6 +5,7 @@ extern crate image;
 extern crate ndarray;
 
 pub mod image_displayer;
+pub mod image_loader;
 
 #[cfg(test)]
 mod tests {
