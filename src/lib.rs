@@ -7,6 +7,7 @@ extern crate ndarray;
 pub mod types;
 pub mod image_displayer;
 pub mod image_loader;
+pub mod draw_shapes;
 
 #[cfg(test)]
 mod tests {

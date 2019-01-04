@@ -18,6 +18,9 @@ name = "image_displayer"
 [[example]]
 name = "image_loader"
 
+[[example]]
+name = "draw_shapes"
+
 [dev-dependencies]
 env_logger = "0.6.0"
 find_folder = "0.3.0"
