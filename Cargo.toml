@@ -1,0 +1,19 @@
+[package]
+name = "rustycv"
+version = "0.1.0"
+authors = ["Paul Lesur <paul.lesur59@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+image = "0.20.1"
+ndarray = "0.12.1"
+log = "0.4"
+conrod_core = "0.62.0"
+conrod_glium = "0.62.0"
+glium = "0.23.0"
+
+[[example]]
+name = "show_image"
+
+[dev-dependencies]
+env_logger = "0.6.0"
