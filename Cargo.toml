@@ -13,7 +13,11 @@ conrod_glium = "0.62.0"
 glium = "0.23.0"
 
 [[example]]
-name = "show_image"
+name = "image_displayer"
+
+[[example]]
+name = "image_loader"
 
 [dev-dependencies]
 env_logger = "0.6.0"
+find_folder = "0.3.0"
