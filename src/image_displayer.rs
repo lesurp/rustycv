@@ -1,3 +1,4 @@
+use super::types;
 use conrod_core::{widget, Positionable, Sizeable, Widget};
 use glium::Surface;
 use std::sync::mpsc::channel;
@@ -5,8 +6,8 @@ use std::sync::mpsc::channel;
 widget_ids!(struct Ids {frame});
 
 struct ActualImageDisplay {
-    width: u32,
-    height: u32,
+    width: usize,
+    height: usize,
     rx: std::sync::mpsc::Receiver<ndarray::Array3<u8>>,
 
     image_map: conrod_core::image::Map<glium::texture::Texture2d>,
@@ -40,7 +41,7 @@ fn texture_from_ndarray(
 }
 
 impl ImageDisplay {
-    pub fn new<S: Into<String>>(width: u32, height: u32, window_name: S) -> ImageDisplay {
+    pub fn new<S: Into<String>>(width: usize, height: usize, window_name: S) -> ImageDisplay {
         let window_name = window_name.into();
         let (tx, rx) = channel();
         std::thread::spawn(move || {
@@ -50,7 +51,12 @@ impl ImageDisplay {
         ImageDisplay { tx }
     }
 
-    pub fn update(&mut self, arr: &ndarray::Array3<u8>) -> Result<(), ()> {
+    pub fn update(&mut self, frame: &types::Frame) -> Result<(), ()> {
+        self.tx.send(frame.0.to_owned()).map_err(|_| ())?;
+        Ok(())
+    }
+
+    pub fn update_raw(&mut self, arr: &ndarray::Array3<u8>) -> Result<(), ()> {
         self.tx.send(arr.to_owned()).map_err(|_| ())?;
         Ok(())
     }
@@ -75,7 +81,7 @@ impl ActualImageDisplay {
             {
                 let ui = &mut self.ui.set_widgets();
                 widget::Image::new(self.image_id)
-                    .w_h(f64::from(self.width), f64::from(self.height))
+                    .w_h(self.width as f64, self.height as f64)
                     .middle()
                     .set(self.widget_ids.frame, ui);
             }
@@ -106,8 +112,8 @@ impl ActualImageDisplay {
 
     fn new<S>(
         rx: std::sync::mpsc::Receiver<ndarray::Array3<u8>>,
-        width: u32,
-        height: u32,
+        width: usize,
+        height: usize,
         window_name: S,
     ) -> ActualImageDisplay
     where
@@ -116,14 +122,14 @@ impl ActualImageDisplay {
         let events_loop = glium::glutin::EventsLoop::new();
         let window = glium::glutin::WindowBuilder::new()
             .with_title(window_name)
-            .with_dimensions((width, height).into());
+            .with_dimensions((width as u32, height as u32).into());
         let context = glium::glutin::ContextBuilder::new()
             .with_vsync(true)
             .with_multisampling(4);
         let display = glium::Display::new(window, context, &events_loop).unwrap();
 
         // construct our `Ui`.
-        let mut ui = conrod_core::UiBuilder::new([f64::from(width), f64::from(height)]).build();
+        let mut ui = conrod_core::UiBuilder::new([width as f64, height as f64]).build();
 
         // A type used for converting `conrod_core::render::Primitives` into `Command`s that can be used
         // for drawing to the glium `Surface`.
@@ -149,4 +155,3 @@ impl ActualImageDisplay {
         }
     }
 }
-

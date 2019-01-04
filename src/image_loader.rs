@@ -1,3 +1,4 @@
+use super::types::Frame;
 use image;
 use image::GenericImageView;
 use ndarray;
@@ -8,15 +9,17 @@ pub enum LoadImageErr {
     Dunno,
 }
 
-pub fn load_image(path: &std::path::Path) -> Result<ndarray::Array3<u8>, LoadImageErr> {
+pub fn load_image(path: &std::path::Path) -> Result<Frame, LoadImageErr> {
     let rgb_image = image::open(path).map_err(|_| LoadImageErr::FileNotFound)?;
     let dimensions = rgb_image.dimensions();
     let raw_image = rgb_image.raw_pixels();
-    Ok(ndarray::ArrayBase::from_shape_vec(
-        (dimensions.0 as usize, dimensions.1 as usize, 3),
-        raw_image,
-    )
-    .map_err(|_| LoadImageErr::Dunno)?)
+    Ok(Frame(
+        ndarray::ArrayBase::from_shape_vec(
+            (dimensions.0 as usize, dimensions.1 as usize, 3),
+            raw_image,
+        )
+        .map_err(|_| LoadImageErr::Dunno)?,
+    ))
 }
 
 #[cfg(test)]
