@@ -4,6 +4,7 @@ extern crate conrod_glium;
 extern crate image;
 extern crate ndarray;
 
+pub mod types;
 pub mod image_displayer;
 pub mod image_loader;
 
