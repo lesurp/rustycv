@@ -1,14 +1,14 @@
-use super::types;
 use conrod_core::{widget, Positionable, Sizeable, Widget};
 use glium::Surface;
 use std::sync::mpsc::channel;
+use super::types::{Frame, RawFrame};
 
 widget_ids!(struct Ids {frame});
 
 struct ActualImageDisplay {
     width: usize,
     height: usize,
-    rx: std::sync::mpsc::Receiver<ndarray::Array3<u8>>,
+    rx: std::sync::mpsc::Receiver<RawFrame>,
 
     image_map: conrod_core::image::Map<glium::texture::Texture2d>,
     image_id: conrod_core::image::Id,
@@ -21,11 +21,11 @@ struct ActualImageDisplay {
 }
 
 pub struct ImageDisplay {
-    tx: std::sync::mpsc::Sender<ndarray::Array3<u8>>,
+    tx: std::sync::mpsc::Sender<RawFrame>,
 }
 
 fn texture_from_ndarray(
-    arr: ndarray::Array3<u8>,
+    arr: RawFrame,
     display: &glium::Display,
 ) -> glium::texture::Texture2d {
     let rgba_image: image::ImageBuffer<image::Rgb<u8>, Vec<u8>> = image::ImageBuffer::from_raw(
@@ -51,12 +51,12 @@ impl ImageDisplay {
         ImageDisplay { tx }
     }
 
-    pub fn update(&mut self, frame: &types::Frame) -> Result<(), ()> {
+    pub fn update(&mut self, frame: &Frame) -> Result<(), ()> {
         self.tx.send(frame.0.to_owned()).map_err(|_| ())?;
         Ok(())
     }
 
-    pub fn update_raw(&mut self, arr: &ndarray::Array3<u8>) -> Result<(), ()> {
+    pub fn update_raw(&mut self, arr: &RawFrame) -> Result<(), ()> {
         self.tx.send(arr.to_owned()).map_err(|_| ())?;
         Ok(())
     }
@@ -111,7 +111,7 @@ impl ActualImageDisplay {
     }
 
     fn new<S>(
-        rx: std::sync::mpsc::Receiver<ndarray::Array3<u8>>,
+        rx: std::sync::mpsc::Receiver<RawFrame>,
         width: usize,
         height: usize,
         window_name: S,

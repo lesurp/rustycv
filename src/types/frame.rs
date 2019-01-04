@@ -1,4 +1,9 @@
-pub struct Frame(pub ndarray::Array3<u8>);
+//#[derive(Clone, Copy)]
+//pub struct Pixel(u8, u8, u8);
+
+pub type RawFrame = ndarray::Array3<u8>;
+
+pub struct Frame(pub RawFrame);
 
 impl Frame {
     pub fn w(&self) -> usize {
