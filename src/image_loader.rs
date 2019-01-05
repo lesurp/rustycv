@@ -1,4 +1,4 @@
-use super::types::Frame;
+use super::types::{Frame, Pixel};
 use image;
 use image::GenericImageView;
 use ndarray;
@@ -13,13 +13,15 @@ pub fn load_image(path: &std::path::Path) -> Result<Frame, LoadImageErr> {
     let rgb_image = image::open(path).map_err(|_| LoadImageErr::FileNotFound)?;
     let dimensions = rgb_image.dimensions();
     let raw_image = rgb_image.raw_pixels();
-    Ok(Frame(
-        ndarray::ArrayBase::from_shape_vec(
-            (dimensions.0 as usize, dimensions.1 as usize, 3),
-            raw_image,
-        )
-        .map_err(|_| LoadImageErr::Dunno)?,
-    ))
+    let u8_ndarray : ndarray::Array3<u8> = ndarray::ArrayBase::from_shape_vec(
+        (dimensions.0 as usize, dimensions.1 as usize, 3),
+        raw_image,
+    )
+    .map_err(|_| LoadImageErr::Dunno)?;
+    let pixel_ndarray = u8_ndarray.map_axis(ndarray::Axis(2), |pixels| {
+        Pixel(pixels[0], pixels[1], pixels[2])
+    });
+    Ok(Frame(pixel_ndarray))
 }
 
 #[cfg(test)]

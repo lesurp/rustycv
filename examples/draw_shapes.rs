@@ -2,7 +2,7 @@ use find_folder;
 use rustycv::draw_shapes::draw_dot;
 use rustycv::image_displayer::ImageDisplay;
 use rustycv::image_loader::*;
-use rustycv::types::{Color, Point};
+use rustycv::types::{Pixel, Point};
 
 fn main() {
     let _ = env_logger::try_init();
@@ -14,7 +14,7 @@ fn main() {
 
     let mut image = load_image(&path).unwrap();
     let (c_w, c_h) = image.center();
-    let _ = draw_dot(&mut image, Color(255, 0, 0), Point(c_w, c_h), 50);
+    let _ = draw_dot(&mut image, Pixel(255, 0, 0), Point(c_w, c_h), 50);
 
     // Note regarding the size:
     // - it does NOT have to match the image_displayer's

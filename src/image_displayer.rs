@@ -1,14 +1,14 @@
+use super::types::Frame;
 use conrod_core::{widget, Positionable, Sizeable, Widget};
 use glium::Surface;
 use std::sync::mpsc::channel;
-use super::types::{Frame, RawFrame};
 
 widget_ids!(struct Ids {frame});
 
 struct ActualImageDisplay {
-    width: usize,
-    height: usize,
-    rx: std::sync::mpsc::Receiver<RawFrame>,
+    width: u32,
+    height: u32,
+    rx: std::sync::mpsc::Receiver<Vec<u8>>,
 
     image_map: conrod_core::image::Map<glium::texture::Texture2d>,
     image_id: conrod_core::image::Id,
@@ -21,19 +21,17 @@ struct ActualImageDisplay {
 }
 
 pub struct ImageDisplay {
-    tx: std::sync::mpsc::Sender<RawFrame>,
+    tx: std::sync::mpsc::Sender<Vec<u8>>,
 }
 
-fn texture_from_ndarray(
-    arr: RawFrame,
+fn texture_from_raw_vec(
+    raw_vec: Vec<u8>,
+    width: u32,
+    height: u32,
     display: &glium::Display,
 ) -> glium::texture::Texture2d {
-    let rgba_image: image::ImageBuffer<image::Rgb<u8>, Vec<u8>> = image::ImageBuffer::from_raw(
-        arr.len_of(ndarray::Axis(0)) as u32,
-        arr.len_of(ndarray::Axis(1)) as u32,
-        arr.into_raw_vec(),
-    )
-    .unwrap();
+    let rgba_image: image::ImageBuffer<image::Rgb<u8>, Vec<u8>> =
+        image::ImageBuffer::from_raw(width, height, raw_vec).unwrap();
     let image_dimensions = rgba_image.dimensions();
     let raw_image =
         glium::texture::RawImage2d::from_raw_rgb_reversed(&rgba_image.into_raw(), image_dimensions);
@@ -45,19 +43,14 @@ impl ImageDisplay {
         let window_name = window_name.into();
         let (tx, rx) = channel();
         std::thread::spawn(move || {
-            let displayer = ActualImageDisplay::new(rx, width, height, window_name);
+            let displayer = ActualImageDisplay::new(rx, width as u32, height as u32, window_name);
             displayer.run();
         });
         ImageDisplay { tx }
     }
 
     pub fn update(&mut self, frame: &Frame) -> Result<(), ()> {
-        self.tx.send(frame.0.to_owned()).map_err(|_| ())?;
-        Ok(())
-    }
-
-    pub fn update_raw(&mut self, arr: &RawFrame) -> Result<(), ()> {
-        self.tx.send(arr.to_owned()).map_err(|_| ())?;
+        self.tx.send(frame.to_flat_vec()).map_err(|_| ())?;
         Ok(())
     }
 }
@@ -87,9 +80,11 @@ impl ActualImageDisplay {
             }
 
             match self.rx.recv_timeout(std::time::Duration::from_millis(16)) {
-                Ok(arr) => {
-                    self.image_map
-                        .replace(self.image_id, texture_from_ndarray(arr, &self.display));
+                Ok(raw_vec) => {
+                    self.image_map.replace(
+                        self.image_id,
+                        texture_from_raw_vec(raw_vec, self.width, self.height, &self.display),
+                    );
                     self.ui.needs_redraw();
                 }
                 Err(std::sync::mpsc::RecvTimeoutError::Timeout) => (),
@@ -111,9 +106,9 @@ impl ActualImageDisplay {
     }
 
     fn new<S>(
-        rx: std::sync::mpsc::Receiver<RawFrame>,
-        width: usize,
-        height: usize,
+        rx: std::sync::mpsc::Receiver<Vec<u8>>,
+        width: u32,
+        height: u32,
         window_name: S,
     ) -> ActualImageDisplay
     where
@@ -122,7 +117,7 @@ impl ActualImageDisplay {
         let events_loop = glium::glutin::EventsLoop::new();
         let window = glium::glutin::WindowBuilder::new()
             .with_title(window_name)
-            .with_dimensions((width as u32, height as u32).into());
+            .with_dimensions((width, height).into());
         let context = glium::glutin::ContextBuilder::new()
             .with_vsync(true)
             .with_multisampling(4);
@@ -136,8 +131,9 @@ impl ActualImageDisplay {
         let renderer = conrod_glium::Renderer::new(&display).unwrap();
 
         let mut image_map = conrod_core::image::Map::new();
-        let empty_arr = ndarray::Array::from_elem((width as usize, height as usize, 3), 0u8);
-        let image_id = image_map.insert(texture_from_ndarray(empty_arr, &display));
+        let mut raw_vec = Vec::new();
+        raw_vec.resize((width * height) as usize * 3, 0);
+        let image_id = image_map.insert(texture_from_raw_vec(raw_vec, width, height, &display));
 
         ActualImageDisplay {
             width,
