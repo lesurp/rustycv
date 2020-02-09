@@ -1,7 +1,5 @@
-use super::types::{Frame, Pixel};
-use image;
+use crate::core::{Mat, Pixel, GenericMat};
 use image::GenericImageView;
-use ndarray;
 
 #[derive(Debug, PartialEq)]
 pub enum LoadImageErr {
@@ -9,9 +7,20 @@ pub enum LoadImageErr {
     Dunno,
 }
 
-pub fn load_image(path: &std::path::Path) -> Result<Frame, LoadImageErr> {
-    let rgb_image = image::open(path).map_err(|_| LoadImageErr::FileNotFound)?;
-    let dimensions = rgb_image.dimensions();
+pub fn image_buffer_to_mat<P, Container>(m: image::ImageBuffer<P, Container>) -> GenericMat 
+where
+    P: image::Pixel + 'static,
+    P::Subpixel: 'static,
+    Container: std::ops::Deref<Target = [P::Subpixel]>, {
+}
+
+pub fn load_image(path: &std::path::Path) -> Result<GenericMat, LoadImageErr> {
+    use image::DynamicImage;
+    let image = image::open(path).map_err(|_| LoadImageErr::FileNotFound)?;
+    let dimensions = image.dimensions();
+    match image {
+        DynamicImage::ImageLuma8(m) => {},
+    }
     let raw_image = rgb_image.raw_pixels();
     let u8_ndarray : ndarray::Array3<u8> = ndarray::ArrayBase::from_shape_vec(
         (dimensions.0 as usize, dimensions.1 as usize, 3),
