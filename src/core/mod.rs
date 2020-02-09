@@ -1,5 +1,3 @@
-pub mod base;
-pub mod frame;
+pub mod mat;
 
-pub use self::frame::{Frame, RawFrame};
-pub use self::base::{Pixel, Point};
+pub use self::mat::{GenericMat, Mat, Pixel, Point};
