@@ -1,18 +1,5 @@
-#[macro_use]
-extern crate conrod_core;
-extern crate conrod_glium;
-extern crate image;
-extern crate ndarray;
+pub mod core;
+pub mod feature_detection;
 
-pub mod types;
-pub mod image_displayer;
-pub mod image_loader;
-pub mod draw_shapes;
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
-    }
-}
+#[cfg(feature = "io")]
+pub mod io;

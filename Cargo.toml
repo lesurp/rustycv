@@ -4,13 +4,22 @@ version = "0.1.0"
 authors = ["Paul Lesur <paul.lesur59@gmail.com>"]
 edition = "2018"
 
+[features]
+default = ["io"]
+io = ["conrod_core", "conrod_glium", "glium", "image"]
+
 [dependencies]
-image = "0.20.1"
-ndarray = "0.12.1"
-log = "0.4"
-conrod_core = "0.62.0"
-conrod_glium = "0.62.0"
-glium = "0.23.0"
+ndarray = "0.13.0"
+log = "0.4.8"
+
+conrod_core = { version = "0.68", optional = true }
+conrod_glium = { version = "0.68", optional = true }
+glium = { version = "0.25", optional = true }
+image = { version = "0.23", optional = true }
+
+[dev-dependencies]
+env_logger = "0.7"
+find_folder = "0.3"
 
 [[example]]
 name = "image_displayer"
@@ -21,6 +30,3 @@ name = "image_loader"
 [[example]]
 name = "draw_shapes"
 
-[dev-dependencies]
-env_logger = "0.6.0"
-find_folder = "0.3.0"

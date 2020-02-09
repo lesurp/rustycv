@@ -31,12 +31,10 @@ impl Frame {
         flat
     }
 
-    /// "That's what she said"
     pub fn is_in(&self, x: i32, y: i32) -> bool {
         x >= 0 && x < self.w() as i32 && y >= 0 && y < self.h() as i32
     }
 
-    /// "That's what she said"
     pub fn into_point(&self, x: i32, y: i32) -> Option<Point> {
         if x >= 0 && x < self.w() as i32 && y >= 0 && y < self.h() as i32 {
             Some(Point(x as usize, y as usize))
